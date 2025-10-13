@@ -1,4 +1,6 @@
-﻿public class StatsService
+﻿namespace Cs2Dashboard;
+
+public class StatsService
 {
     private readonly Dictionary<string, PlayerStats> _stats = new();
 

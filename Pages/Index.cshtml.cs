@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
+namespace Cs2Dashboard;
+
 public class IndexModel : PageModel
 {
     private readonly StatsService _statsService;
