@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace Cs2Dashboard;
+namespace Cs2Dashboard.Pages;
 
 public class IndexModel : PageModel
 {
