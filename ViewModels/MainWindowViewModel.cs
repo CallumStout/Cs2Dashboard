@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Avalonia.Threading;
 
-namespace Cs2Dashboard;
+namespace Cs2Dashboard.ViewModels;
 
 public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 {

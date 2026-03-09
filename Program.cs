@@ -1,5 +1,7 @@
 using System.Text.Json;
 using Avalonia;
+using Cs2Dashboard.ViewModels;
+using Cs2Dashboard.Views;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;

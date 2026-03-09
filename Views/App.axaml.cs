@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
-namespace Cs2Dashboard;
+namespace Cs2Dashboard.Views;
 
 public partial class App : Application
 {
