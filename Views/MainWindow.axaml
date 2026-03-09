@@ -6,15 +6,24 @@
         MinWidth="760"
         MinHeight="500"
         Title="CS2 Dashboard">
-  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
-    <TextBlock Text="CS2 Live Stats" FontSize="30" FontWeight="Bold" Margin="0,0,0,4" />
+  <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="16">
+    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+      <TextBlock Text="CS2 Live Stats" FontSize="30" FontWeight="Bold" />
+      <Button Grid.Column="1"
+              Content="{Binding ThemeButtonLabel}"
+              Click="OnToggleThemeClicked"
+              MinWidth="160"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Center" />
+    </Grid>
 
     <TextBlock Grid.Row="1"
                Text="{Binding EndpointLabel}"
                Opacity="0.75"
-               FontSize="14" Margin="0,0,0,4" />
+               FontSize="14"
+               Margin="0,0,0,4" />
 
-    <Border Grid.Row="2" Margin="0,4,0,4"
+    <Border Grid.Row="3" Margin="0,4,0,4"
             Padding="12"
             BorderThickness="1"
             CornerRadius="8"
@@ -48,6 +57,6 @@
       </Grid>
     </Border>
 
-    <TextBlock Grid.Row="3" Text="{Binding PlayerCountLabel}" Opacity="0.75" />
+    <TextBlock Grid.Row="4" Text="{Binding PlayerCountLabel}" Opacity="0.75" />
   </Grid>
 </Window>

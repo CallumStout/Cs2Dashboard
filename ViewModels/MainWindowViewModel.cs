@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Avalonia;
+using Avalonia.Styling;
 using Avalonia.Threading;
 
 namespace Cs2Dashboard.ViewModels;
@@ -9,6 +11,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly StatsService _statsService;
     private string _playerCountLabel = "Players tracked: 0";
+    private string _currentThemeLabel = "Light";
 
     public MainWindowViewModel(StatsService statsService)
     {
@@ -16,11 +19,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         _statsService.StatsChanged += OnStatsChanged;
 
         ReplacePlayers(_statsService.GetAll());
+        UpdateThemeLabelFromApp();
     }
 
     public ObservableCollection<PlayerStats> Players { get; } = new();
 
-    public string EndpointLabel { get; } = "Listening for CS2 GSI on http://localhost:5050/gsi";
+    public string EndpointLabel { get; } = "Listening for CS2 GSI on http://localhost:3000/ and http://localhost:5050/gsi";
 
     public string PlayerCountLabel
     {
@@ -28,11 +32,26 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         private set => SetField(ref _playerCountLabel, value);
     }
 
+    public string CurrentThemeLabel
+    {
+        get => _currentThemeLabel;
+        private set => SetField(ref _currentThemeLabel, value);
+    }
+
+    public string ThemeButtonLabel => $"Switch to {(CurrentThemeLabel == "Dark" ? "Light" : "Dark")} Mode";
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public void Dispose()
     {
         _statsService.StatsChanged -= OnStatsChanged;
+    }
+
+    public void UpdateThemeLabelFromApp()
+    {
+        var variant = Application.Current?.RequestedThemeVariant;
+        CurrentThemeLabel = variant == ThemeVariant.Dark ? "Dark" : "Light";
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ThemeButtonLabel)));
     }
 
     private void OnStatsChanged(IReadOnlyList<PlayerStats> players)
