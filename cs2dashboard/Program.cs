@@ -1,25 +1,25 @@
-using System.Text.Json;
 using Avalonia;
+using CounterStrike2GSI;
+using CounterStrike2GSI.Nodes;
 using Cs2Dashboard.ViewModels;
 using Cs2Dashboard.Views;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Cs2Dashboard;
 
 internal static class Program
 {
-    private static WebApplication? _webApp;
+    private const int GsiPort = 3000;
+    private static GameStateListener? _listener;
 
     public static StatsService StatsService { get; } = new();
+    public static string GsiConfigStatusMessage { get; private set; } = "GSI config generation has not run yet.";
 
     public static MainWindowViewModel MainViewModel { get; } = new(StatsService);
 
     [STAThread]
     public static void Main(string[] args)
     {
-        StartGsiServer(args);
+        StartGsiListener();
 
         try
         {
@@ -28,7 +28,7 @@ internal static class Program
         finally
         {
             MainViewModel.Dispose();
-            StopGsiServer();
+            StopGsiListener();
         }
     }
 
@@ -39,129 +39,70 @@ internal static class Program
             .LogToTrace();
     }
 
-    private static void StartGsiServer(string[] args)
+    private static void StartGsiListener()
     {
-        var builder = WebApplication.CreateBuilder(args);
-        builder.Services.AddSingleton(StatsService);
-
-        var app = builder.Build();
-
-        app.MapPost("/", (HttpRequest request, StatsService statsService) => ProcessStatsPayload(request, statsService));
-        app.MapPost("/gsi", (HttpRequest request, StatsService statsService) => ProcessStatsPayload(request, statsService));
-
-        app.MapGet("/stats", (StatsService statsService) => statsService.GetAll());
-
-        app.Urls.Clear();
-        app.Urls.Add("http://localhost:3000");
-        app.Urls.Add("http://localhost:5050");
-
-        _webApp = app;
-        _ = app.RunAsync();
-    }
-
-    private static async Task<IResult> ProcessStatsPayload(HttpRequest request, StatsService statsService)
-    {
-        using var reader = new StreamReader(request.Body);
-        var body = await reader.ReadToEndAsync();
-
-        if (string.IsNullOrWhiteSpace(body))
-        {
-            return Results.BadRequest("Empty body");
-        }
-
         try
         {
-            using var json = JsonDocument.Parse(body);
+            _listener = new GameStateListener(GsiPort);
+            _listener.NewGameState += OnNewGameState;
+            _listener.Start();
 
-            if (!UpdateStatsFromPayload(json.RootElement, statsService))
-            {
-                return Results.BadRequest("Missing player payload");
-            }
-
-            return Results.Ok();
+            var generated = _listener.GenerateGSIConfigFile("cs2dashboard");
+            GsiConfigStatusMessage = generated
+                ? "GSI config created/updated automatically."
+                : "Could not auto-create GSI config file. Create gamestate_integration_*.cfg manually.";
         }
-        catch (JsonException)
+        catch (Exception ex)
         {
-            return Results.BadRequest("Invalid JSON");
+            GsiConfigStatusMessage = $"Failed to start GSI listener: {ex.Message}";
         }
     }
 
-    private static void StopGsiServer()
+    private static void StopGsiListener()
     {
-        if (_webApp is null)
+        if (_listener is null)
         {
             return;
         }
 
-        _webApp.StopAsync().GetAwaiter().GetResult();
-        _webApp.DisposeAsync().AsTask().GetAwaiter().GetResult();
-        _webApp = null;
+        _listener.NewGameState -= OnNewGameState;
+        _listener.Stop();
+        _listener.Dispose();
+        _listener = null;
     }
 
-    private static bool UpdateStatsFromPayload(JsonElement root, StatsService statsService)
+    private static void OnNewGameState(CounterStrike2GSI.GameState gameState)
     {
-        var foundPlayer = false;
+        var hasUpdatedAnyPlayer = false;
 
-        if (root.TryGetProperty("allplayers", out var allPlayers) && allPlayers.ValueKind == JsonValueKind.Object)
+        if (gameState.AllPlayers is not null)
         {
-            foreach (var player in allPlayers.EnumerateObject())
+            foreach (var playerEntry in gameState.AllPlayers)
             {
-                if (TryExtractPlayerStats(player.Value, out var name, out var kills, out var deaths, out var assists))
-                {
-                    statsService.Update(name, kills, deaths, assists);
-                    foundPlayer = true;
-                }
+                hasUpdatedAnyPlayer |= TryUpdatePlayer(playerEntry.Value);
             }
         }
 
-        if (root.TryGetProperty("player", out var singlePlayer))
+        if (!hasUpdatedAnyPlayer && gameState.Player is not null)
         {
-            if (TryExtractPlayerStats(singlePlayer, out var name, out var kills, out var deaths, out var assists))
-            {
-                statsService.Update(name, kills, deaths, assists);
-                foundPlayer = true;
-            }
+            _ = TryUpdatePlayer(gameState.Player);
         }
-
-        return foundPlayer;
     }
 
-    private static bool TryExtractPlayerStats(
-        JsonElement player,
-        out string name,
-        out int kills,
-        out int deaths,
-        out int assists)
+    private static bool TryUpdatePlayer(CounterStrike2GSI.Nodes.Player player)
     {
-        name = "Unknown";
-        kills = 0;
-        deaths = 0;
-        assists = 0;
-
-        if (player.TryGetProperty("name", out var nameProperty))
-        {
-            name = nameProperty.GetString() ?? "Unknown";
-        }
-
-        if (!player.TryGetProperty("match_stats", out var matchStats))
+        if (player.MatchStats is null)
         {
             return false;
         }
 
-        if (matchStats.TryGetProperty("kills", out var killsProperty))
-        {
-            kills = killsProperty.GetInt32();
-        }
+        var name = string.IsNullOrWhiteSpace(player.Name) ? "Unknown" : player.Name;
 
-        if (matchStats.TryGetProperty("deaths", out var deathsProperty))
-        {
-            deaths = deathsProperty.GetInt32();
-        }
-
-        if (matchStats.TryGetProperty("assists", out var assistsProperty))
-        {
-            assists = assistsProperty.GetInt32();
-        }
+        StatsService.Update(
+            name,
+            player.MatchStats.Kills,
+            player.MatchStats.Deaths,
+            player.MatchStats.Assists);
 
         return true;
     }

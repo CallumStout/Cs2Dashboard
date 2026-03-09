@@ -13,10 +13,7 @@
     <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.10" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="CounterStrike2GSI" Version="1.0.3.8403" />
   </ItemGroup>
 
 </Project>

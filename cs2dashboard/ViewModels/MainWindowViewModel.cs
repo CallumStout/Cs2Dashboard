@@ -24,7 +24,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public ObservableCollection<PlayerStats> Players { get; } = new();
 
-    public string EndpointLabel { get; } = "Listening for CS2 GSI on http://localhost:3000/ and http://localhost:5050/gsi";
+    public string EndpointLabel { get; } = "Listening for CS2 GSI on http://localhost:3000/";
+
+    public string GsiConfigStatusLabel { get; } = Program.GsiConfigStatusMessage;
 
     public string PlayerCountLabel
     {
