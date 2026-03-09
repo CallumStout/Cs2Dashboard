@@ -1,14 +1,14 @@
-#define MyAppId "{{}}"
+#define MyAppId "{{{4BEACCCC-4709-4D2C-A9BB-3AEAA5D78527}}}"
 #define MyAppName "CS2 Stats Dashboard"
 #define MyAppVersion "1.0.0.0"
 #define CompanyName "97 Solutions"
 #define SetupName "CS2DashboardSetup"
-#define AppIcon (SourcePath + "..\Artwork\")
-#define PathToBinary (SourcePath + "..\..\Cs2Dashboard\bin\Release")
-#define MyAppExeName "CS2 Dashboard.exe"
+#define AppIcon (SourcePath + "\Artwork\")
+#define PathToBinary (SourcePath + "..\cs2dashboard\bin\Release\net8.0\win-x64\publish")
+#define MyAppExeName "Cs2Dashboard.exe"
 
 [Setup]
-AppId={#MyAppId}
+AppId={{#MyAppId}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 DefaultDirName={commonpf64}\{#CompanyName}\{#MyAppName}
