@@ -84,6 +84,9 @@ internal static class Program
         {
             _ = TryUpdatePlayer(gameState.Player);
         }
+
+        var mapName = gameState.Map?.Name ?? "Unknown";
+        MainViewModel.SetCurrentMap(mapName);
     }
 
     private static bool TryUpdatePlayer(CounterStrike2GSI.Nodes.Player player)

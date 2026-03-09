@@ -13,6 +13,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private string _playerCountLabel = "Players tracked: 0";
     private string _currentThemeLabel = "Light";
     private string _gsiConfigStatusLabel = Program.GsiConfigStatusMessage;
+    private string _currentMap = "Unknown";
 
     public MainWindowViewModel(StatsService statsService)
     {
@@ -43,6 +44,18 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
         get => _currentThemeLabel;
         private set => SetField(ref _currentThemeLabel, value);
+    }
+
+    public string CurrentMap
+    {
+        get => _currentMap;
+        private set => SetField(ref _currentMap, value);
+    }
+
+    public void SetCurrentMap(string map)
+    {
+        var next = string.IsNullOrWhiteSpace(map) ? "Unknown" : map.Trim();
+        Dispatcher.UIThread.Post(() => CurrentMap = next);
     }
 
     public string ThemeButtonLabel => $"Switch to {(CurrentThemeLabel == "Dark" ? "Light" : "Dark")} Mode";
