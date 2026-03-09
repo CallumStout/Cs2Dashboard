@@ -12,6 +12,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private readonly StatsService _statsService;
     private string _playerCountLabel = "Players tracked: 0";
     private string _currentThemeLabel = "Light";
+    private string _gsiConfigStatusLabel = Program.GsiConfigStatusMessage;
 
     public MainWindowViewModel(StatsService statsService)
     {
@@ -26,7 +27,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public string EndpointLabel { get; } = "Listening for CS2 GSI on http://localhost:3000/";
 
-    public string GsiConfigStatusLabel { get; } = Program.GsiConfigStatusMessage;
+    public string GsiConfigStatusLabel
+    {
+        get => _gsiConfigStatusLabel;
+        private set => SetField(ref _gsiConfigStatusLabel, value);
+    }
 
     public string PlayerCountLabel
     {
@@ -47,6 +52,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     public void Dispose()
     {
         _statsService.StatsChanged -= OnStatsChanged;
+    }
+
+    public void SetGsiConfigStatus(string message)
+    {
+        Dispatcher.UIThread.Post(() => GsiConfigStatusLabel = message);
     }
 
     public void UpdateThemeLabelFromApp()

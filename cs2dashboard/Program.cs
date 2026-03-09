@@ -1,8 +1,6 @@
 using Avalonia;
 using CounterStrike2GSI;
-using CounterStrike2GSI.Nodes;
 using Cs2Dashboard.ViewModels;
-using Cs2Dashboard.Views;
 
 namespace Cs2Dashboard;
 
@@ -19,8 +17,6 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        StartGsiListener();
-
         try
         {
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
@@ -39,7 +35,7 @@ internal static class Program
             .LogToTrace();
     }
 
-    private static void StartGsiListener()
+    public static void StartGsiListener()
     {
         try
         {
@@ -55,10 +51,13 @@ internal static class Program
         catch (Exception ex)
         {
             GsiConfigStatusMessage = $"Failed to start GSI listener: {ex.Message}";
+            _listener = null;
         }
+
+        MainViewModel.SetGsiConfigStatus(GsiConfigStatusMessage);
     }
 
-    private static void StopGsiListener()
+    public static void StopGsiListener()
     {
         if (_listener is null)
         {
@@ -66,12 +65,10 @@ internal static class Program
         }
 
         _listener.NewGameState -= OnNewGameState;
-        _listener.Stop();
-        _listener.Dispose();
         _listener = null;
     }
 
-    private static void OnNewGameState(CounterStrike2GSI.GameState gameState)
+    private static void OnNewGameState(GameState gameState)
     {
         var hasUpdatedAnyPlayer = false;
 
@@ -96,14 +93,21 @@ internal static class Program
             return false;
         }
 
-        var name = string.IsNullOrWhiteSpace(player.Name) ? "Unknown" : player.Name;
+        var name = (player.Name ?? string.Empty).Trim();
+        var kills = player.MatchStats.Kills;
+        var deaths = player.MatchStats.Deaths;
+        var assists = player.MatchStats.Assists;
 
-        StatsService.Update(
-            name,
-            player.MatchStats.Kills,
-            player.MatchStats.Deaths,
-            player.MatchStats.Assists);
+        if (string.IsNullOrWhiteSpace(name) ||
+            name.Equals("unknown", StringComparison.OrdinalIgnoreCase) ||
+            kills < 0 ||
+            deaths < 0 ||
+            assists < 0)
+        {
+            return false;
+        }
 
+        StatsService.Update(name, kills, deaths, assists);
         return true;
     }
 }

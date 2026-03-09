@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
-namespace Cs2Dashboard.Views;
+namespace Cs2Dashboard;
 
 public partial class App : Application
 {
@@ -19,6 +19,8 @@ public partial class App : Application
             {
                 DataContext = Program.MainViewModel
             };
+
+            Program.StartGsiListener();
         }
 
         base.OnFrameworkInitializationCompleted();

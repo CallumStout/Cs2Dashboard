@@ -9,10 +9,18 @@ public sealed class StatsService
 
     public void Update(string name, int kills, int deaths, int assists)
     {
-        IReadOnlyList<PlayerStats> snapshot;
+        IReadOnlyList<PlayerStats>? snapshot = null;
 
         lock (_sync)
         {
+            if (_stats.TryGetValue(name, out var existing) &&
+                existing.Kills == kills &&
+                existing.Deaths == deaths &&
+                existing.Assists == assists)
+            {
+                return;
+            }
+
             _stats[name] = new PlayerStats
             {
                 Name = name,
@@ -25,7 +33,10 @@ public sealed class StatsService
             snapshot = BuildSnapshot();
         }
 
-        StatsChanged?.Invoke(snapshot);
+        if (snapshot is not null)
+        {
+            StatsChanged?.Invoke(snapshot);
+        }
     }
 
     public IReadOnlyList<PlayerStats> GetAll()
@@ -39,7 +50,7 @@ public sealed class StatsService
     private List<PlayerStats> BuildSnapshot()
     {
         return _stats.Values
-            .OrderByDescending(player => player.LastUpdated)
+            .OrderBy(player => player.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
 }
