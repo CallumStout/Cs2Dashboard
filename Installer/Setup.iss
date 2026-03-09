@@ -1,6 +1,6 @@
 #define MyAppId "{{4BEACCCC-4709-4D2C-A9BB-3AEAA5D78527}}"
 #define MyAppName "CS2 Stats Dashboard"
-#define MyAppVersion "1.0.0.0"
+#define MyAppVersion "1.0.0.1"
 #define CompanyName "97 Solutions"
 #define SetupName "CS2DashboardSetup"
 #define AppIcon (SourcePath + "Artwork\")
