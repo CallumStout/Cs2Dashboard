@@ -3,8 +3,8 @@
 #define MyAppVersion "1.0.0.0"
 #define CompanyName "97 Solutions"
 #define SetupName "CS2DashboardSetup"
-#define AppIcon (AddBackslash(SourcePath) + "Artwork\\")
-#define PathToBinary (AddBackslash(SourcePath) + "..\\cs2dashboard\\bin\\Release\\net8.0\\win-x64\\publish")
+#define AppIcon (SourcePath + "Artwork\")
+#define PathToBinary (SourcePath + "..\cs2dashboard\bin\Release\net8.0\win-x64\publish")
 #define MyAppExeName "Cs2Dashboard.exe"
 
 [Setup]
