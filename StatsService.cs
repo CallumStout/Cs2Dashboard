@@ -1,30 +1,52 @@
-﻿namespace Cs2Dashboard;
+namespace Cs2Dashboard;
 
-public class StatsService
+public sealed class StatsService
 {
-    private readonly Dictionary<string, PlayerStats> _stats = new();
+    private readonly Dictionary<string, PlayerStats> _stats = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _sync = new();
+
+    public event Action<IReadOnlyList<PlayerStats>>? StatsChanged;
 
     public void Update(string name, int kills, int deaths, int assists)
     {
-        _stats[name] = new PlayerStats
+        IReadOnlyList<PlayerStats> snapshot;
+
+        lock (_sync)
         {
-            Name = name,
-            Kills = kills,
-            Deaths = deaths,
-            Assists = assists,
-            LastUpdated = DateTime.Now
-        };
+            _stats[name] = new PlayerStats
+            {
+                Name = name,
+                Kills = kills,
+                Deaths = deaths,
+                Assists = assists,
+                LastUpdated = DateTimeOffset.Now
+            };
+
+            snapshot = BuildSnapshot();
+        }
+
+        StatsChanged?.Invoke(snapshot);
     }
 
-    public List<PlayerStats> GetAll()
+    public IReadOnlyList<PlayerStats> GetAll()
     {
-        return _stats.Values.ToList();
+        lock (_sync)
+        {
+            return BuildSnapshot();
+        }
+    }
+
+    private List<PlayerStats> BuildSnapshot()
+    {
+        return _stats.Values
+            .OrderByDescending(player => player.LastUpdated)
+            .ToList();
     }
 }
 
-public class PlayerStats
+public sealed class PlayerStats
 {
-    public string Name { get; set; } = "";
+    public string Name { get; set; } = string.Empty;
 
     public int Kills { get; set; }
 
@@ -32,5 +54,7 @@ public class PlayerStats
 
     public int Assists { get; set; }
 
-    public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset LastUpdated { get; set; } = DateTimeOffset.Now;
+
+    public string LastUpdatedDisplay => LastUpdated.LocalDateTime.ToString("HH:mm:ss");
 }

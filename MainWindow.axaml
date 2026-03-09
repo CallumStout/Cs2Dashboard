@@ -1,0 +1,53 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Cs2Dashboard.MainWindow"
+        Width="920"
+        Height="620"
+        MinWidth="760"
+        MinHeight="500"
+        Title="CS2 Dashboard">
+  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
+    <TextBlock Text="CS2 Live Stats" FontSize="30" FontWeight="Bold" Margin="0,0,0,4" />
+
+    <TextBlock Grid.Row="1"
+               Text="{Binding EndpointLabel}"
+               Opacity="0.75"
+               FontSize="14" Margin="0,0,0,4" />
+
+    <Border Grid.Row="2" Margin="0,4,0,4"
+            Padding="12"
+            BorderThickness="1"
+            CornerRadius="8"
+            BorderBrush="#404040">
+      <Grid RowDefinitions="Auto,*">
+        <Grid ColumnDefinitions="2*,*,*,*,2*" Margin="0,0,0,8">
+          <TextBlock Text="Player" FontWeight="SemiBold" />
+          <TextBlock Grid.Column="1" Text="Kills" FontWeight="SemiBold" HorizontalAlignment="Center" />
+          <TextBlock Grid.Column="2" Text="Deaths" FontWeight="SemiBold" HorizontalAlignment="Center" />
+          <TextBlock Grid.Column="3" Text="Assists" FontWeight="SemiBold" HorizontalAlignment="Center" />
+          <TextBlock Grid.Column="4" Text="Last Updated" FontWeight="SemiBold" HorizontalAlignment="Right" />
+        </Grid>
+
+        <ScrollViewer Grid.Row="1">
+          <ItemsControl ItemsSource="{Binding Players}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderThickness="0,0,0,1" BorderBrush="#303030">
+                  <Grid ColumnDefinitions="2*,*,*,*,2*" Margin="0,8,0,8">
+                    <TextBlock Text="{Binding Name}" />
+                    <TextBlock Grid.Column="1" Text="{Binding Kills}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Deaths}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Column="3" Text="{Binding Assists}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Column="4" Text="{Binding LastUpdatedDisplay}" HorizontalAlignment="Right" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Grid>
+    </Border>
+
+    <TextBlock Grid.Row="3" Text="{Binding PlayerCountLabel}" Opacity="0.75" />
+  </Grid>
+</Window>
