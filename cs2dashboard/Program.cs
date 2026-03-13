@@ -10,6 +10,7 @@ internal static class Program
     private static GameStateListener? _listener;
 
     public static StatsService StatsService { get; } = new();
+
     public static string GsiConfigStatusMessage { get; private set; } = "GSI config generation has not run yet.";
 
     public static MainWindowViewModel MainViewModel { get; } = new(StatsService);
@@ -70,23 +71,46 @@ internal static class Program
 
     private static void OnNewGameState(GameState gameState)
     {
-        var hasUpdatedAnyPlayer = false;
-
-        if (gameState.AllPlayers is not null)
+        if (gameState.AllPlayers is not null && gameState.AllPlayers.Count > 0)
         {
-            foreach (var playerEntry in gameState.AllPlayers)
+            foreach (var entry in gameState.AllPlayers)
             {
-                hasUpdatedAnyPlayer |= TryUpdatePlayer(playerEntry.Value);
+                TryUpdatePlayer(entry.Value);
             }
         }
-
-        if (!hasUpdatedAnyPlayer && gameState.Player is not null)
+        else if (gameState.Player is not null)
         {
-            _ = TryUpdatePlayer(gameState.Player);
+            TryUpdatePlayer(gameState.Player);
         }
 
         var mapName = gameState.Map?.Name ?? "Unknown";
         MainViewModel.SetCurrentMap(mapName);
+
+        var roundTotalDamage = ResolveRoundTotalDamage(gameState);
+        MainViewModel.SetRoundTotalDamage(roundTotalDamage);
+    }
+
+    private static int ResolveRoundTotalDamage(GameState gameState)
+    {
+        var damage = gameState.Player?.State?.RoundTotalDamage ?? -1;
+        if (damage >= 0)
+        {
+            return damage;
+        }
+
+        var localSteamId = gameState.Player?.SteamID;
+        if (!string.IsNullOrWhiteSpace(localSteamId) &&
+            gameState.AllPlayers is not null &&
+            gameState.AllPlayers.TryGetValue(localSteamId, out var localPlayerFromAll))
+        {
+            damage = localPlayerFromAll.State?.RoundTotalDamage ?? -1;
+            if (damage >= 0)
+            {
+                return damage;
+            }
+        }
+
+        return -1;
     }
 
     private static bool TryUpdatePlayer(CounterStrike2GSI.Nodes.Player player)

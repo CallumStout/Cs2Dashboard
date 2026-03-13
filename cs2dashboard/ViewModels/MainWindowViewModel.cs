@@ -14,6 +14,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private string _currentThemeLabel = "Light";
     private string _gsiConfigStatusLabel = Program.GsiConfigStatusMessage;
     private string _currentMap = "Unknown";
+    private int _roundTotalDamage = -1;
 
     public MainWindowViewModel(StatsService statsService)
     {
@@ -52,10 +53,31 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         private set => SetField(ref _currentMap, value);
     }
 
+    public int RoundTotalDamage
+    {
+        get => _roundTotalDamage;
+        private set
+        {
+            if (!SetField(ref _roundTotalDamage, value))
+            {
+                return;
+            }
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RoundTotalDamageDisplay)));
+        }
+    }
+
+    public string RoundTotalDamageDisplay => RoundTotalDamage < 0 ? "N/A" : RoundTotalDamage.ToString();
+
     public void SetCurrentMap(string map)
     {
         var next = string.IsNullOrWhiteSpace(map) ? "Unknown" : map.Trim();
         Dispatcher.UIThread.Post(() => CurrentMap = next);
+    }
+
+    public void SetRoundTotalDamage(int value)
+    {
+        Dispatcher.UIThread.Post(() => RoundTotalDamage = value);
     }
 
     public string ThemeButtonLabel => $"Switch to {(CurrentThemeLabel == "Dark" ? "Light" : "Dark")} Mode";
@@ -96,14 +118,15 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PlayerCountLabel = $"Players tracked: {Players.Count}";
     }
 
-    private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value))
         {
-            return;
+            return false;
         }
 
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        return true;
     }
 }
